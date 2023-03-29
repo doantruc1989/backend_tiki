@@ -19,7 +19,6 @@ import editNestedReviewDto from './dto/editNestedReview.dto';
 import SearchReviewDto from './dto/searchReview.dto';
 import { Cache } from 'cache-manager';
 
-
 @Injectable()
 export class ProductService {
   constructor(
@@ -39,11 +38,10 @@ export class ProductService {
     private productVarRepository: Repository<ProductVariant>,
 
     @Inject(CACHE_MANAGER) private cacheService: Cache,
-  ) {
-
-  }
+  ) {}
 
   async getAllProduct(page: number) {
+    const countProducts = await this.productRepository.count();
     const product = await this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.productvariant', 'productvariant')
@@ -52,7 +50,7 @@ export class ProductService {
       .skip(16 * (page - 1))
       .take(16)
       .getMany();
-    return product;
+    return [product, countProducts];
   }
 
   async createProduct(newProductDto: NewProductDto) {
@@ -191,19 +189,19 @@ export class ProductService {
       .take(16)
       .getMany();
 
-      const count = await this.reviewRepository
+    const count = await this.reviewRepository
       .createQueryBuilder('review')
       .leftJoinAndSelect('review.product', 'product')
       .leftJoinAndSelect('review.user', 'user')
-      .getCount()
+      .getCount();
 
-      const totalPage = Math.ceil(count/16)
-    return [review,totalPage];
+    const totalPage = Math.ceil(count / 16);
+    return [review, totalPage];
   }
 
   async getAllreview() {
-    const review = await this.reviewRepository.find()
-    return review
+    const review = await this.reviewRepository.find();
+    return review;
   }
 
   async getReviewByID(id: number) {
@@ -227,7 +225,7 @@ export class ProductService {
   }
 
   async deleteReviewByID(id: number) {
-    const review = await this.reviewRepository.softDelete({id:id})
+    const review = await this.reviewRepository.softDelete({ id: id });
     return review;
   }
 
@@ -239,37 +237,41 @@ export class ProductService {
       .take(10)
       .getMany();
 
-      const count = await this.nestedReviewRepository
+    const count = await this.nestedReviewRepository
       .createQueryBuilder('nestedreview')
       .leftJoinAndSelect('nestedreview.review', 'review')
-      .getCount()
+      .getCount();
 
-      const totalPage = Math.ceil(count/10)
+    const totalPage = Math.ceil(count / 10);
     return [nestedReview, totalPage];
   }
 
-  async getNestedReviewByID(id:number){
+  async getNestedReviewByID(id: number) {
     const nestedReview = await this.nestedReviewRepository
-    .createQueryBuilder('nestedreview')
-    .leftJoinAndSelect('nestedreview.review', 'review')
-    .where({id:id})
-    .getMany()
+      .createQueryBuilder('nestedreview')
+      .leftJoinAndSelect('nestedreview.review', 'review')
+      .where({ id: id })
+      .getMany();
     return nestedReview;
   }
 
-  async editNestedReviewByID(id:number, editNestedReviewDto: editNestedReviewDto) {
-   
+  async editNestedReviewByID(
+    id: number,
+    editNestedReviewDto: editNestedReviewDto,
+  ) {
     const nestedReview = await this.nestedReviewRepository
-    .createQueryBuilder('nestedreview')
-    .leftJoinAndSelect('nestedreview.review', 'review')
-    .where({id:id})
-    .update(editNestedReviewDto)
-    .execute()
+      .createQueryBuilder('nestedreview')
+      .leftJoinAndSelect('nestedreview.review', 'review')
+      .where({ id: id })
+      .update(editNestedReviewDto)
+      .execute();
     return nestedReview;
   }
 
-  async deleteNestedReviewByID(id:number) {
-    const nestedReview = await this.nestedReviewRepository.softDelete({id:id})
+  async deleteNestedReviewByID(id: number) {
+    const nestedReview = await this.nestedReviewRepository.softDelete({
+      id: id,
+    });
     return nestedReview;
   }
 
@@ -291,26 +293,26 @@ export class ProductService {
 
   async searchnestedReview(searchReviewDto: SearchReviewDto) {
     const reviews = await this.nestedReviewRepository
-    .createQueryBuilder('nestedreview')
-    .leftJoinAndSelect('nestedreview.review', 'review')
+      .createQueryBuilder('nestedreview')
+      .leftJoinAndSelect('nestedreview.review', 'review');
 
     if (searchReviewDto.search === 'searchall') {
       return reviews
-      .where(`LOWER(review.id) LIKE '%${searchReviewDto.sortBy}%'`)
-      .orWhere(`LOWER(nestedreview.id) LIKE '%${searchReviewDto.sortBy}%'`)
-      .take(10)
-      .getMany();
+        .where(`LOWER(review.id) LIKE '%${searchReviewDto.sortBy}%'`)
+        .orWhere(`LOWER(nestedreview.id) LIKE '%${searchReviewDto.sortBy}%'`)
+        .take(10)
+        .getMany();
     }
-    
+
     if (searchReviewDto.search === 'adminasc') {
       return reviews
-      .orderBy(`review.${searchReviewDto.sortBy}`,"ASC")
-      .getMany();
+        .orderBy(`review.${searchReviewDto.sortBy}`, 'ASC')
+        .getMany();
     }
 
     if (searchReviewDto.search === 'admindesc') {
       return reviews
-        .orderBy(`review.${searchReviewDto.sortBy}`,"DESC")
+        .orderBy(`review.${searchReviewDto.sortBy}`, 'DESC')
         .getMany();
     }
     return reviews.getMany();
@@ -318,57 +320,55 @@ export class ProductService {
 
   async searchReview(searchReviewDto: SearchReviewDto) {
     const reviews = await this.reviewRepository
-    .createQueryBuilder('review')
-    .leftJoinAndSelect('review.product', 'product')
-    .leftJoinAndSelect('review.user', 'user')
+      .createQueryBuilder('review')
+      .leftJoinAndSelect('review.product', 'product')
+      .leftJoinAndSelect('review.user', 'user');
 
     if (searchReviewDto.search === 'searchall') {
       return reviews
-      .where(`LOWER(review.id) LIKE '%${searchReviewDto.sortBy}%'`)
-      .orWhere(`LOWER(review.type) LIKE '%${searchReviewDto.sortBy}%'`)
-      .orWhere(`LOWER(user.id) LIKE '%${searchReviewDto.sortBy}%'`)
-      .orWhere(`LOWER(product.id) LIKE '%${searchReviewDto.sortBy}%'`)
-      .take(10)
-      .getMany();
+        .where(`LOWER(review.id) LIKE '%${searchReviewDto.sortBy}%'`)
+        .orWhere(`LOWER(review.type) LIKE '%${searchReviewDto.sortBy}%'`)
+        .orWhere(`LOWER(user.id) LIKE '%${searchReviewDto.sortBy}%'`)
+        .orWhere(`LOWER(product.id) LIKE '%${searchReviewDto.sortBy}%'`)
+        .take(10)
+        .getMany();
     }
 
     if (searchReviewDto.search === 'reviewasc') {
       return reviews
-      .orderBy(`review.${searchReviewDto.sortBy}`,"ASC")
-      .getMany();
+        .orderBy(`review.${searchReviewDto.sortBy}`, 'ASC')
+        .getMany();
     }
 
     if (searchReviewDto.search === 'reviewdesc') {
       return reviews
-        .orderBy(`review.${searchReviewDto.sortBy}`,"DESC")
+        .orderBy(`review.${searchReviewDto.sortBy}`, 'DESC')
         .getMany();
     }
 
     if (searchReviewDto.search === 'productasc') {
       return reviews
-      .orderBy(`product.${searchReviewDto.sortBy}`,"ASC")
-      .getMany();
+        .orderBy(`product.${searchReviewDto.sortBy}`, 'ASC')
+        .getMany();
     }
 
     if (searchReviewDto.search === 'productdesc') {
       return reviews
-        .orderBy(`product.${searchReviewDto.sortBy}`,"DESC")
+        .orderBy(`product.${searchReviewDto.sortBy}`, 'DESC')
         .getMany();
     }
 
     if (searchReviewDto.search === 'userasc') {
-      return reviews
-      .orderBy(`user.${searchReviewDto.sortBy}`,"ASC")
-      .getMany();
+      return reviews.orderBy(`user.${searchReviewDto.sortBy}`, 'ASC').getMany();
     }
 
     if (searchReviewDto.search === 'userdesc') {
       return reviews
-        .orderBy(`user.${searchReviewDto.sortBy}`,"DESC")
+        .orderBy(`user.${searchReviewDto.sortBy}`, 'DESC')
         .getMany();
     }
 
-    return reviews.getMany() 
+    return reviews.getMany();
   }
 
   async getProductbyCat(searchProductDto: SearchProductDto) {
@@ -587,15 +587,14 @@ export class ProductService {
   }
 
   async listProduct(page: number) {
-
+    const countProducts = await this.productRepository.count();
     const products = await this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.categoryID', 'category')
       .skip(18 * (page - 1))
       .take(18)
       .getMany();
-
-    return products;
+    return [products, countProducts];
   }
 
   async list6Product() {

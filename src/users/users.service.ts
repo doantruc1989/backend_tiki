@@ -28,10 +28,12 @@ export class UsersService {
   }
 
   async findAll(page = 1) {
-    return this.usersRepository.find({
+   const usersCount = await this.usersRepository.count();
+    const users = await this.usersRepository.find({
       skip: 5 * (page - 1),
       take: 5,
     });
+    return [users, usersCount]
   }
 
   async getCountUser() {

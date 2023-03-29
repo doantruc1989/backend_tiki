@@ -3,7 +3,6 @@ import {
   CacheInterceptor,
   CacheTTL,
   CACHE_MANAGER,
-
   Controller,
   Delete,
   Get,
@@ -35,17 +34,17 @@ export class ProductController {
   constructor(
     private productService: ProductService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-    ) {}
+  ) {}
 
-    @UseInterceptors(CacheInterceptor)
-    @CacheTTL(1000)
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(1000)
   @Get('product')
   async getAllProduct(@Query('page') page: number) {
     return this.productService.listProduct(page);
   }
 
-  @UseInterceptors(CacheInterceptor)
-  @CacheTTL(1000)
+  // @UseInterceptors(CacheInterceptor)
+  // @CacheTTL(1000)
   @Get('v2/product/:id')
   async getProductId(@Param('id') id: number) {
     return this.productService.getProductByIdV2(id);
@@ -115,7 +114,7 @@ export class ProductController {
   @CacheTTL(1000)
   @Get('v2/allreview')
   async getAllReview() {
-    return this.productService.getAllreview()
+    return this.productService.getAllreview();
   }
 
   @UseInterceptors(CacheInterceptor)
@@ -177,14 +176,14 @@ export class ProductController {
   @CacheTTL(1000)
   @Get('v2/searchnestedreview')
   async searchNestedReview(@Query() searchReviewDto: SearchReviewDto) {
-    return this.productService.searchnestedReview(searchReviewDto)
+    return this.productService.searchnestedReview(searchReviewDto);
   }
 
   @UseInterceptors(CacheInterceptor)
   @CacheTTL(1000)
   @Get('v2/searchreview')
   async searchReview(@Query() searchReviewDto: SearchReviewDto) {
-    return this.productService.searchReview(searchReviewDto)
+    return this.productService.searchReview(searchReviewDto);
   }
 
   @UseInterceptors(CacheInterceptor)
@@ -210,7 +209,6 @@ export class ProductController {
   ) {
     return this.productService.patchProductById(id, editProductDto);
   }
-
 
   @UseInterceptors(CacheInterceptor)
   @CacheTTL(1000)

@@ -21,8 +21,8 @@ export class CartController {
   }
 
   
-  @UseInterceptors(CacheInterceptor)
-  @CacheTTL(1000)
+  // @UseInterceptors(CacheInterceptor)
+  // @CacheTTL(1000)
   @Get('admin/listorder')
   async listorder(@Query('page') page: number) {
     return this.cartService.getListOrder(page);

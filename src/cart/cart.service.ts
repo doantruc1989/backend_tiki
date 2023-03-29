@@ -39,10 +39,13 @@ export class CartService {
   }
 
   async getListOrder(page = 1) {
-    return await this.orderItemRepository.find({
+    const ordersCount = await this.orderItemRepository.count();
+    console.log(ordersCount)
+    const orders = await this.orderItemRepository.find({
       skip: 5 * (page - 1),
       take: 5,
     });
+    return [orders, ordersCount]
   }
 
   async getListOrderbyId(id: number) {
